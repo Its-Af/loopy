@@ -13,6 +13,12 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../daemons/common.sh"
 agent="${LOOPY_AGENT_ID:-${1:-}}"
 [[ -z "$agent" ]] && die "set LOOPY_AGENT_ID (or pass it as \$1)"
 role="${agent%%.*}"
+
+# Agents must run from the host repo root so their relative reads resolve
+# (./CLAUDE.md, loopy/agents/<role>.md, .loopy/project-context.md). tmux sets
+# this via `new-window -c`; in background mode we must do it ourselves.
+cd "$LOOPY_ROOT" 2>/dev/null || true
+export LOOPY_PROJECT_ROOT="$LOOPY_ROOT"
 LOG="$LOOPY_RUNTIME/logs/${agent}.log"
 mkdir -p "$LOOPY_RUNTIME/logs"
 
