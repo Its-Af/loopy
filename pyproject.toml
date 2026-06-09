@@ -1,0 +1,34 @@
+# Loopy test + tooling configuration.
+#
+# Loopy ships no third-party runtime dependencies — the framework runs on the
+# Python standard library alone. pytest is the only dev dependency, used to run
+# the suite under tests/. Run it from this directory:
+#
+#     python -m pytest            # or: .venv/bin/python -m pytest
+#
+# `pythonpath = ["."]` puts the framework dir (this directory) on sys.path so
+# `import tools` resolves the same way it does for the operator scripts.
+
+[project]
+name = "loopy"
+version = "0.1.0"
+description = "File-based multi-agent coordination framework"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q -ra"
+markers = [
+    "slow: integration tests that spawn subprocesses (the bus broker)",
+]
+
+[tool.setuptools]
+# The framework is consumed as a git submodule, not pip-installed, but this
+# keeps `pip install -e .[dev]` working for contributors who prefer it.
+packages = ["tools", "daemons", "mcp"]

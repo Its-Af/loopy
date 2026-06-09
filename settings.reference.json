@@ -1,0 +1,50 @@
+{
+  "$comment": [
+    "Reference .claude/settings.json for a Loopy-enabled project. operator/init.sh",
+    "copies this to .claude/settings.json if none exists. Tune the permission",
+    "lists to your project: this is the HARD allow/deny the harness enforces,",
+    "complementing the soft conventions in loopy/protocol/sandbox.md.",
+    "Start restrictive; widen deliberately."
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(python3 loopy/scripts/agent-tool.py:*)",
+      "Bash(python3 loopy/scripts/capacity-check.py:*)",
+      "Bash(python3 loopy/scripts/verify-canary.py:*)",
+      "Bash(loopy/operator/status.sh:*)",
+      "Bash(loopy/scripts/check-agents.sh:*)",
+      "Bash(loopy/scripts/check-round.sh:*)",
+      "Read(//**)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.loopy/keys.env)",
+      "Read(./secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/id_rsa*)",
+      "Bash(rm -rf /*)",
+      "Bash(git push --force:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(rm:*)"
+    ]
+  },
+  "env": {
+    "LOOPY_MAX_CLAUDE_PROCS": "12",
+    "LOOPY_MAX_INFLIGHT": "2",
+    "LOOPY_MAX_LOAD_PER_CPU": "2.5"
+  }
+}

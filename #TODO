@@ -1,0 +1,30 @@
+# #TODO  (sample format)
+
+> This is a **sample** of the board format. At runtime the real `#TODO` lives at
+> your *project root* (not here) and is a regenerated projection of
+> `.loopy/tasks/`. Never edit it by hand — use `agent-tool.py task ...`; the
+> CLI rewrites this file for you.
+
+_Generated 2026-06-08 12:00:00 — projection of .loopy/tasks/._
+
+**3 open · 1 done**
+
+## P0  (1)
+- [~] `01ARZ3NDEKTSV4RRFFQ69G5FAV` **CLAIMED** @producers.1 — Implement login form [auth]
+
+## P1  (1)
+- [ ] `01ARZ3NDEKTSV4RRFFQ69G5FB2` **OPEN** — Add request rate limiting [security] ⛔1
+
+## P2  (1)
+- [!] `01ARZ3NDEKTSV4RRFFQ69G5FC7` **REOPENED** — Document the public API [docs]
+
+## Done — most recent 1
+- [x] `01ARZ3NDEKTSV4RRFFQ69G5F9P` ~~Scaffold project structure~~ (producers.2)
+
+<!--
+Legend for the checkbox glyph:
+  [ ] OPEN        [~] CLAIMED / IN_PROGRESS    [!] REOPENED
+  [?] REVIEW      [x] BLOCKED or DONE          ⛔N = N unfinished blockers
+Priorities: P0 (drop everything) … P3 (someday). States are authoritative in
+the JSON task files; this board is just the human-readable view.
+-->

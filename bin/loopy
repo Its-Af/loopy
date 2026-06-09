@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# loopy — the single entry point for the squad.
+#
+# Works from anywhere inside a host repo that has Loopy vendored at loopy/:
+#
+#   loopy/bin/loopy start        # init (first run) + launch the squad
+#   loopy/bin/loopy status       # health dashboard
+#   loopy/bin/loopy stop         # stop everything
+#
+# `start` uses tmux when available (rich terminal UI); without tmux it falls
+# back to background processes so the squad still runs.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"        # loopy/bin
+source "$HERE/../daemons/common.sh"
+FW="$LOOPY_FRAMEWORK_DIR"
+
+usage() {
+  cat <<EOF
+loopy — file-based multi-agent squad
+
+usage: loopy <command> [args]
+
+  install [--dev]   Check prerequisites, set up .loopy/, install git hooks
+  doctor            Report environment readiness (python, tmux, claude, key)
+  init [--force]    Create/refresh the .loopy/ runtime in the host repo
+  scan              Re-scan the host repo into .loopy/project-context.md
+  start [--procs|--headless|--tmux]
+                    Launch the squad. Default: tmux if installed, else --procs.
+  stop              Stop all agents, the watchdog, and the message bus
+  status [--watch]  Health dashboard
+  attach [agent]    Attach to the tmux session (optionally a specific agent)
+  chat <agent> ...  Send a message to an agent (replies land in alfred's inbox)
+  logs [agent]      Tail agent logs (background/procs mode)
+  test              Run the framework test suite (pytest)
+  agent <args...>   Pass through to agent-tool.py (advanced)
+  help              Show this help
+
+host root: $LOOPY_ROOT
+EOF
+}
+
+cmd="${1:-help}"; shift || true
+case "$cmd" in
+  install)  exec bash "$FW/scripts/install.sh" "$@" ;;
+  doctor)   exec bash "$FW/scripts/doctor.sh" "$@" ;;
+  init)     exec bash "$FW/operator/init.sh" "$@" ;;
+  scan)     exec "$PY" "$FW/scripts/scan-project.py" "$@" ;;
+  stop)     exec bash "$FW/operator/stop-all.sh" --force "$@" ;;
+  status)   exec bash "$FW/operator/status.sh" "$@" ;;
+  attach)   exec bash "$FW/operator/attach.sh" "$@" ;;
+  chat)     exec bash "$FW/operator/chat.sh" "$@" ;;
+  agent)    exec "$PY" "$LOOPY_TOOL" "$@" ;;
+  help|-h|--help) usage ;;
+
+  start)
+    mode="${1:-auto}"
+    case "$mode" in
+      --headless) exec bash "$FW/operator/launch-headless.sh" ;;
+      --procs)    exec bash "$FW/operator/launch-procs.sh" ;;
+      --tmux)     exec bash "$FW/operator/launch-all.sh" ;;
+      *)
+        if loopy_have_tmux; then
+          exec bash "$FW/operator/launch-all.sh"
+        else
+          warn "tmux not found — starting in background process mode."
+          warn "For the full terminal UI, install tmux (brew install tmux / apt install tmux)."
+          exec bash "$FW/operator/launch-procs.sh"
+        fi ;;
+    esac ;;
+
+  logs)
+    mkdir -p "$LOOPY_RUNTIME/logs"
+    if [[ -n "${1:-}" ]]; then
+      f="$LOOPY_RUNTIME/logs/${1}.log"
+      [[ -f "$f" ]] || die "no log for '$1' (is it running in --procs mode?)"
+      exec tail -n 100 -f "$f"
+    fi
+    shopt -s nullglob
+    files=("$LOOPY_RUNTIME"/logs/*.log)
+    (( ${#files[@]} )) || die "no logs yet (agents may be running in tmux panes; use 'loopy attach')"
+    exec tail -n 40 -f "${files[@]}" ;;
+
+  test)
+    py="$PY"
+    [[ -x "$FW/.venv/bin/python" ]] && py="$FW/.venv/bin/python"
+    [[ -x "$LOOPY_ROOT/.venv/bin/python" ]] && py="$LOOPY_ROOT/.venv/bin/python"
+    if ! "$py" -c "import pytest" 2>/dev/null; then
+      die "pytest not installed. Run: loopy install --dev   (or: make test)"
+    fi
+    cd "$FW" && exec "$py" -m pytest "$@" ;;
+
+  *)
+    err "unknown command: $cmd"
+    usage
+    exit 2 ;;
+esac

@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Test / coverage / type caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Dev virtualenv (Loopy's runtime needs no deps; this is for the test suite)
+.venv/
+venv/
+
+# npm (the optional Claude CLI dependency installs here)
+node_modules/
+npm-debug.log*
+
+# Loopy runtime state belongs to the *host* repo (../.loopy and ../#TODO),
+# which live OUTSIDE this framework dir. The only reason to list .loopy/ here is
+# to catch a stray runtime accidentally created inside the framework during dev.
+# (Do NOT ignore #TODO — the committed one here is the format sample.)
+.loopy/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+.idea/
+.vscode/

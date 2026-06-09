@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: tests (py${{ matrix.python }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      # Loopy's runtime is standard-library only; pytest is the sole dev dep.
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Run test suite
+        run: python -m pytest -q
+
+      - name: Shell scripts parse under bash
+        shell: bash
+        run: |
+          fail=0
+          for f in $(find . -name '*.sh'); do
+            bash -n "$f" || { echo "syntax error: $f"; fail=1; }
+          done
+          # bin/loopy has no .sh extension but is bash
+          bash -n bin/loopy || fail=1
+          exit $fail
+
+  lint-canary:
+    name: protocol integrity (canary)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: Canary baseline + verify is self-consistent
+        run: |
+          python scripts/regenerate-canary.py
+          python scripts/verify-canary.py

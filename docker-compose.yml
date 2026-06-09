@@ -1,0 +1,83 @@
+# Loopy multi-container deployment (default roster).
+#
+# Each service is one role; all share the project bind-mount (./ -> /work) and
+# therefore the same .loopy/ runtime, coordinating through files + the bus
+# exactly as tmux panes do. Regenerate for a custom roster with
+# loopy/scripts/generate-compose.sh > docker-compose.loopy.yml
+#
+#   ANTHROPIC_API_KEY=sk-... docker compose -f loopy/docker-compose.yml up -d
+#
+# Build once; every service reuses the image.
+
+x-agent: &agent
+  image: loopy:latest
+  build:
+    context: .
+    dockerfile: loopy/Dockerfile
+  volumes:
+    - ./:/work
+  working_dir: /work
+  environment: &env
+    LOOPY_PROJECT_ROOT: "/work"
+    ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "bash", "loopy/operator/docker-status.sh"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+
+services:
+  bus:
+    <<: *agent
+    environment: { <<: *env, LOOPY_AGENT_ID: "bus" }
+
+  watchdog:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "watchdog" }
+
+  execs:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "execs" }
+
+  alfred:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "alfred" }
+
+  producers-1:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "producers.1" }
+
+  producers-2:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "producers.2" }
+
+  producers-3:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "producers.3" }
+
+  qas:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "qas" }
+
+  critics:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "critics" }
+
+  securities:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "securities" }
+
+  users:
+    <<: *agent
+    depends_on: [bus]
+    environment: { <<: *env, LOOPY_AGENT_ID: "users" }

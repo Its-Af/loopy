@@ -1,0 +1,30 @@
+{
+  "name": "loopy-squad",
+  "version": "0.1.0",
+  "description": "Loopy — a file-based multi-agent coordination framework for Claude Code. Vendor it into any repo as a git submodule.",
+  "keywords": ["claude", "claude-code", "agents", "multi-agent", "tmux", "automation"],
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/loopy",
+  "repository": { "type": "git", "url": "https://github.com/your-org/loopy.git" },
+  "bin": { "loopy": "bin/loopy" },
+  "scripts": {
+    "postinstall": "bash scripts/install.sh --from-npm",
+    "start": "bin/loopy start",
+    "stop": "bin/loopy stop",
+    "status": "bin/loopy status",
+    "doctor": "bin/loopy doctor",
+    "scan": "bin/loopy scan",
+    "test": "bin/loopy test"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/claude-code": "*"
+  },
+  "engines": { "node": ">=18" },
+  "os": ["darwin", "linux"],
+  "files": [
+    "bin/", "agents/", "daemons/", "mcp/", "operator/", "protocol/",
+    "scripts/", "skills/", "tools/",
+    "config.sample.md", "settings.reference.json", "pyproject.toml",
+    "README.md", "SYSTEM.md", "SETTINGS.md", "DEPLOYMENT.md", "LICENSE"
+  ]
+}
