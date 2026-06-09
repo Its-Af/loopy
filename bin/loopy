@@ -21,6 +21,7 @@ loopy — file-based multi-agent squad
 usage: loopy <command> [args]
 
   install [--dev]   Check prerequisites, set up .loopy/, install git hooks
+  login [--reset]   Set/verify Anthropic credentials (stored in .loopy/keys.env)
   doctor            Report environment readiness (python, tmux, claude, key)
   init [--force]    Create/refresh the .loopy/ runtime in the host repo
   scan              Re-scan the host repo into .loopy/project-context.md
@@ -30,6 +31,7 @@ usage: loopy <command> [args]
   status [--watch]  Health dashboard
   attach [agent]    Attach to the tmux session (optionally a specific agent)
   chat <agent> ...  Send a message to an agent (replies land in alfred's inbox)
+  goal [text]       Show the project goal, or set it (alfred also maintains it)
   logs [agent]      Tail agent logs (background/procs mode)
   test              Run the framework test suite (pytest)
   agent <args...>   Pass through to agent-tool.py (advanced)
@@ -42,6 +44,7 @@ EOF
 cmd="${1:-help}"; shift || true
 case "$cmd" in
   install)  exec bash "$FW/scripts/install.sh" "$@" ;;
+  login)    exec bash "$FW/scripts/preflight-credentials.sh" --reset ;;
   doctor)   exec bash "$FW/scripts/doctor.sh" "$@" ;;
   init)     exec bash "$FW/operator/init.sh" "$@" ;;
   scan)     exec "$PY" "$FW/scripts/scan-project.py" "$@" ;;
@@ -49,10 +52,18 @@ case "$cmd" in
   status)   exec bash "$FW/operator/status.sh" "$@" ;;
   attach)   exec bash "$FW/operator/attach.sh" "$@" ;;
   chat)     exec bash "$FW/operator/chat.sh" "$@" ;;
+  goal)
+    if [[ -n "${1:-}" ]]; then
+      exec "$PY" "$LOOPY_TOOL" set-goal "$*" --by operator
+    else
+      exec "$PY" "$LOOPY_TOOL" get-goal
+    fi ;;
   agent)    exec "$PY" "$LOOPY_TOOL" "$@" ;;
   help|-h|--help) usage ;;
 
   start)
+    # Make sure credentials are present + working before we spin up agents.
+    bash "$FW/scripts/preflight-credentials.sh" || true
     mode="${1:-auto}"
     case "$mode" in
       --headless) exec bash "$FW/operator/launch-headless.sh" ;;

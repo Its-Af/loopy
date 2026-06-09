@@ -22,5 +22,7 @@ case "$agent" in
     role="${agent%%.*}"
     log "container role: agent $agent"
     "$PY" "$LOOPY_FRAMEWORK_DIR/scripts/scan-project.py" >/dev/null 2>&1 || true
+    # shellcheck disable=SC1090
+    source "$LOOPY_FRAMEWORK_DIR/tools/load-keys.sh" >/dev/null 2>&1 || true
     exec bash -lc "$(loopy_agent_cmd "$role")" ;;
 esac

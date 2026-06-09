@@ -111,3 +111,19 @@ loopy_roster() {
 loopy_require_runtime() {
   [[ -d "$LOOPY_RUNTIME" ]] || die ".loopy/ not found — run loopy/operator/init.sh first"
 }
+
+# Ensure the host repo's .gitignore excludes the runtime — crucial because
+# .loopy/keys.env can hold an API key. No-op if the host isn't a git repo.
+# Note the `\#TODO` escaping: a bare leading '#' is a gitignore comment.
+loopy_ensure_gitignore() {
+  command -v git >/dev/null 2>&1 && git -C "$LOOPY_ROOT" rev-parse >/dev/null 2>&1 || return 0
+  local gi="$LOOPY_ROOT/.gitignore"
+  if [[ ! -f "$gi" ]] || ! grep -qxF ".loopy/" "$gi" 2>/dev/null; then
+    {
+      echo ""
+      echo "# Loopy runtime state (holds credentials in .loopy/keys.env) — never commit"
+      echo ".loopy/"
+      echo "\\#TODO"
+    } >> "$gi"
+  fi
+}

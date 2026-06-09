@@ -79,11 +79,13 @@ def cmd_status(a: argparse.Namespace, ctx: Ctx) -> int:
     from tools.state import all_states
     from tools.task import list_tasks
     from tools.metrics import summarize
+    from tools.goal import goal_summary
     states = all_states()
     tasks = list_tasks()
     open_tasks = [t for t in tasks if not t.is_done]
     loop_stats = summarize("loop")
     data = {
+        "goal": goal_summary(),
         "agents": [s.__dict__ for s in states],
         "agents_total": len(states),
         "agents_stale": sum(1 for s in states if s.stale),
@@ -94,6 +96,7 @@ def cmd_status(a: argparse.Namespace, ctx: Ctx) -> int:
     if ctx.as_json:
         ctx.emit("", data)
     else:
+        ctx.emit(f"goal: {data['goal']}")
         ctx.emit(f"agents: {len(states)} ({data['agents_stale']} stale) | "
                  f"tasks: {len(open_tasks)} open, {data['tasks_done']} done | "
                  f"loop p95: {data['loop_p95_ms']}ms")
@@ -254,6 +257,26 @@ def cmd_regen_todo(a: argparse.Namespace, ctx: Ctx) -> int:
     return 0
 
 
+# --- project goal ----------------------------------------------------------
+def cmd_get_goal(a: argparse.Namespace, ctx: Ctx) -> int:
+    from tools.goal import read_goal
+    g = read_goal()
+    if not g:
+        ctx.emit("(no project goal set — tell alfred what to build)", {"goal": ""})
+        return 1
+    ctx.emit(g, {"goal": g})
+    return 0
+
+
+def cmd_set_goal(a: argparse.Namespace, ctx: Ctx) -> int:
+    from tools.goal import set_goal
+    from tools.identity import current_agent
+    by = a.by or current_agent(required=False) or "operator"
+    g = set_goal(_read_body(a.goal), by=by)
+    ctx.emit(f"project goal updated by {by}", {"goal": g, "by": by})
+    return 0
+
+
 # --- memory ----------------------------------------------------------------
 def cmd_read_briefing(a: argparse.Namespace, ctx: Ctx) -> int:
     from tools.memory import read_briefing
@@ -396,6 +419,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser("regen-todo", help="rebuild the #TODO index")
     sp.set_defaults(func=cmd_regen_todo)
+
+    sp = sub.add_parser("get-goal", help="print the current project goal")
+    sp.set_defaults(func=cmd_get_goal)
+    sp = sub.add_parser("set-goal", help="set/replace the project goal (alfred maintains this)")
+    sp.add_argument("goal", nargs="?", help="goal text (or '-' / omit to read stdin)")
+    sp.add_argument("--by", help="who is setting it (defaults to current agent)")
+    sp.set_defaults(func=cmd_set_goal)
 
     sp = sub.add_parser("read-briefing"); add_agent(sp)
     sp.set_defaults(func=cmd_read_briefing)

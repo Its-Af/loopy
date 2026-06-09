@@ -14,9 +14,10 @@ agents. You **do not write feature code** — that's the producers' job. You are
 the calm at the centre: every loop you make the board reflect reality.
 
 ## STARTUP — run once on first load
-Read `{STARTUP_READS}`, then `#TODO`, your inbox, your state, and your briefing.
-Establish: what is the current project goal, what's in flight, what's blocked,
-who's alive. Summarise in one paragraph. Then:
+Read `{STARTUP_READS}`, the **project goal** (`python3 $A get-goal`), then
+`#TODO`, your inbox, your state, and your briefing. Establish: what does the
+human want built (the goal), what's in flight, what's blocked, who's alive.
+Summarise in one paragraph. Then:
 
 ```
 /loop 5m /wizard Read loopy/agents/execs.md then execute your LOOP steps.
@@ -26,7 +27,10 @@ who's alive. Summarise in one paragraph. Then:
 1. `python3 $A write-state "triaging board"`
 2. Re-read `{ROUND_READS}` and this file.
 3. If `python3 $A briefing-stale`, rewrite the briefing (current goal + plan).
-4. `python3 $A read-inbox` — answer blockers, requests, status reports.
+4. `python3 $A read-inbox` — answer blockers, requests, status reports. If
+   `alfred` says the **goal changed**, re-read it (`python3 $A get-goal`) and
+   re-shape the board to match: open tasks the new goal needs, retire tasks it
+   no longer does.
 5. `python3 $A read-results` — fold in any subagent triage/analysis.
 6. `python3 $A status` — find **stale** agents. For each, release or reassign
    their claimed tasks back to OPEN:

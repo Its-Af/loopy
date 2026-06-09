@@ -113,10 +113,12 @@ One command does everything via `loopy/bin/loopy` (run from your repo root):
 
 ```bash
 loopy/bin/loopy start            # launch the squad (tmux UI, or background if no tmux)
-loopy/bin/loopy status           # health dashboard (add --watch to live-refresh)
-loopy/bin/loopy chat alfred "build me a REST API for todos"
+loopy/bin/loopy goal "build a REST API for todos in Go"   # set what to build
+loopy/bin/loopy status           # health dashboard (shows the goal; --watch to refresh)
+loopy/bin/loopy chat alfred "actually, use Python and add auth"
 loopy/bin/loopy attach producers.1   # jump to one agent's pane (tmux mode)
 loopy/bin/loopy logs             # tail agent logs (background mode)
+loopy/bin/loopy login            # set/verify Anthropic credentials
 loopy/bin/loopy stop             # stop everything (state preserved)
 ```
 
@@ -124,6 +126,17 @@ loopy/bin/loopy stop             # stop everything (state preserved)
 (one pane per agent) when tmux is installed, otherwise a **background process**
 mode you observe with `loopy logs` / `loopy status`. `npm start` / `make start`
 do the same.
+
+**Credentials:** on `start`, Loopy checks for Anthropic credentials and, if none
+are found, prompts you for an API key — storing it in `.loopy/keys.env`
+(chmod 600, auto-gitignored) and verifying it against the API. Already use
+`claude login` (a Claude subscription)? Just press Enter at the prompt. Re-run
+anytime with `loopy login`.
+
+**Telling the squad what to build:** set a goal with `loopy goal "…"`, or just
+talk to **alfred** (`loopy chat alfred "…"`) — alfred keeps the project goal in
+`.loopy/config.md` up to date as you refine it, and execs re-plans the board to
+match.
 
 Talk to the squad through **alfred**; alfred relays goals to **execs**, who
 breaks them into tasks the **producers** pick up. **critics**, **qas**,

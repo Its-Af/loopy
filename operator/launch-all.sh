@@ -35,7 +35,7 @@ while read -r agent; do
     "$LOOPY_TMUX" new-window -t "$LOOPY_SESSION" -n "$win" -c "$LOOPY_ROOT"
   fi
   "$LOOPY_TMUX" send-keys -t "$(loopy_pane_target "$agent")" \
-    "export LOOPY_AGENT_ID=$agent LOOPY_PROJECT_ROOT=$LOOPY_ROOT" Enter
+    "export LOOPY_AGENT_ID=$agent LOOPY_PROJECT_ROOT=$LOOPY_ROOT; source loopy/tools/load-keys.sh >/dev/null 2>&1 || true" Enter
   "$LOOPY_TMUX" send-keys -t "$(loopy_pane_target "$agent")" "$cmd" Enter
   log "  launched $agent -> $(loopy_pane_target "$agent")"
 done < <(loopy_roster)

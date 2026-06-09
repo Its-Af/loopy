@@ -19,6 +19,9 @@ for d in inbox quarantine wake state tasks memory results metrics intents \
 done
 chmod 700 "$LOOPY_RUNTIME/bus" "$LOOPY_RUNTIME/bus/tokens" 2>/dev/null || true
 
+# Protect the runtime (esp. .loopy/keys.env) from being committed to the host.
+loopy_ensure_gitignore
+
 # Seed config.md from the sample at the framework/project root.
 sample=""
 for cand in "$LOOPY_ROOT/config.sample.md" "$LOOPY_FRAMEWORK_DIR/config.sample.md"; do

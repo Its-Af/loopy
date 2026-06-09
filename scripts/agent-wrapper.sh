@@ -19,6 +19,9 @@ role="${agent%%.*}"
 # this via `new-window -c`; in background mode we must do it ourselves.
 cd "$LOOPY_ROOT" 2>/dev/null || true
 export LOOPY_PROJECT_ROOT="$LOOPY_ROOT"
+# Make Anthropic credentials available to claude (no-op for subscription login).
+# shellcheck disable=SC1090
+source "$LOOPY_FRAMEWORK_DIR/tools/load-keys.sh" >/dev/null 2>&1 || true
 LOG="$LOOPY_RUNTIME/logs/${agent}.log"
 mkdir -p "$LOOPY_RUNTIME/logs"
 

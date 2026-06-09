@@ -47,13 +47,20 @@ else
   note "global: npm i -g @anthropic-ai/claude-code   |   local: 'npm install' in loopy/"
 fi
 
-# --- credentials (soft) ---
+# --- credentials (soft) — load stored keys, then live-verify ---
+# shellcheck disable=SC1090
+source "$LOOPY_FRAMEWORK_DIR/tools/load-keys.sh" >/dev/null 2>&1 || true
 if [[ -n "${ANTHROPIC_API_KEY:-}${ANTHROPIC_AUTH_TOKEN:-}" ]]; then
-  pass "Anthropic credentials present in environment"
-elif [[ -f "$LOOPY_ROOT/.loopy/keys.env" || -f "$LOOPY_ROOT/.env" ]]; then
-  warn_ "credentials not in env, but a keys file exists — source loopy/tools/load-keys.sh"
+  cred_rc=0; "$PY" "$LOOPY_FRAMEWORK_DIR/scripts/verify-credentials.py" >/dev/null 2>&1 || cred_rc=$?
+  case "$cred_rc" in
+    0) pass "Anthropic credentials present and verified" ;;
+    1) fail "Anthropic credentials present but REJECTED — run 'loopy login'" ;;
+    *) pass "Anthropic credentials present (live check skipped — offline?)" ;;
+  esac
+elif [[ -d "$HOME/.claude" || -f "$HOME/.claude.json" ]]; then
+  pass "no API key, but a 'claude login' session looks present"
 else
-  warn_ "no ANTHROPIC_API_KEY found — set it, or put it in .loopy/keys.env"
+  warn_ "no Anthropic credentials — run 'loopy login' (or set ANTHROPIC_API_KEY)"
 fi
 
 # --- node/npm (soft, only needed for the npm install path) ---
